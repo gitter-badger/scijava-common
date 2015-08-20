@@ -85,12 +85,15 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 	private ScriptService scriptService;
 
 	@Parameter
-	private ConvertService conversionService;
+	private ConvertService convertService;
+
+	/** True iff the return value is explicitly declared as an output. */
+	private boolean returnValueDeclared;
 
 	/**
 	 * Creates a script metadata object which describes the given script file.
 	 * 
-	 * @param context The ImageJ application context to use when populating
+	 * @param context The SciJava application context to use when populating
 	 *          service inputs.
 	 * @param file The script file.
 	 */
@@ -101,7 +104,7 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 	/**
 	 * Creates a script metadata object which describes the given script file.
 	 * 
-	 * @param context The ImageJ application context to use when populating
+	 * @param context The SciJava application context to use when populating
 	 *          service inputs.
 	 * @param path Path to the script file.
 	 */
@@ -113,7 +116,7 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 	 * Creates a script metadata object which describes a script provided by the
 	 * given {@link Reader}.
 	 * 
-	 * @param context The ImageJ application context to use when populating
+	 * @param context The SciJava application context to use when populating
 	 *          service inputs.
 	 * @param path Pseudo-path to the script file. This file does not actually
 	 *          need to exist, but rather provides a name for the script with file
@@ -162,7 +165,7 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 	 * method is called ({@link #getInput}, {@link #getOutput}, {@link #inputs()},
 	 * {@link #outputs()}, etc.). Subsequent calls will reparse the parameters.
 	 * <p>
-	 * ImageJ's scripting framework supports specifying @{@link Parameter}-style
+	 * SciJava's scripting framework supports specifying @{@link Parameter}-style
 	 * inputs and outputs in a preamble. The format is a simplified version of the
 	 * Java @{@link Parameter} annotation syntax. The following syntaxes are
 	 * supported:
@@ -207,6 +210,7 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 	@Override
 	public void parseParameters() {
 		clearParameters();
+		returnValueDeclared = false;
 
 		try {
 			final BufferedReader in;
@@ -233,7 +237,7 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 			if (reader == null) in.close();
 			else in.reset();
 
-			addReturnValue();
+			if (!returnValueDeclared) addReturnValue();
 		}
 		catch (final IOException exc) {
 			log.error("Error reading script: " + path, exc);
@@ -241,6 +245,11 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 		catch (final ScriptException exc) {
 			log.error("Invalid parameter syntax for script: " + path, exc);
 		}
+	}
+
+	/** Gets whether the return value is explicitly declared as an output. */
+	public boolean isReturnValueDeclared() {
+		return returnValueDeclared;
 	}
 
 	// -- ModuleInfo methods --
@@ -347,6 +356,7 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 		}
 		final Class<?> type = scriptService.lookupClass(typeName);
 		addItem(varName, type, attrs);
+		if (ScriptModule.RETURN_VALUE.equals(varName)) returnValueDeclared = true;
 	}
 
 	/** Parses a comma-delimited list of {@code key=value} pairs into a map. */
@@ -370,7 +380,7 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 	}
 
 	private boolean isIOType(final String token) {
-		return conversionService.convert(token, ItemIO.class) != null;
+		return convertService.convert(token, ItemIO.class) != null;
 	}
 
 	private void checkValid(final boolean valid, final String param)
@@ -412,7 +422,7 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 //			item.setChoices(choices);
 		}
 		else if ("columns".equalsIgnoreCase(key)) {
-			item.setColumnCount(conversionService.convert(value, int.class));
+			item.setColumnCount(convertService.convert(value, int.class));
 		}
 		else if ("description".equalsIgnoreCase(key)) {
 			item.setDescription(value);
@@ -421,44 +431,47 @@ public class ScriptInfo extends AbstractModuleInfo implements Contextual {
 			item.setInitializer(value);
 		}
 		else if ("type".equalsIgnoreCase(key)) {
-			item.setIOType(conversionService.convert(value, ItemIO.class));
+			item.setIOType(convertService.convert(value, ItemIO.class));
 		}
 		else if ("label".equalsIgnoreCase(key)) {
 			item.setLabel(value);
 		}
 		else if ("max".equalsIgnoreCase(key)) {
-			item.setMaximumValue(conversionService.convert(value, item.getType()));
+			item.setMaximumValue(convertService.convert(value, item.getType()));
 		}
 		else if ("min".equalsIgnoreCase(key)) {
-			item.setMinimumValue(conversionService.convert(value, item.getType()));
+			item.setMinimumValue(convertService.convert(value, item.getType()));
 		}
 		else if ("name".equalsIgnoreCase(key)) {
 			item.setName(value);
 		}
 		else if ("persist".equalsIgnoreCase(key)) {
-			item.setPersisted(conversionService.convert(value, boolean.class));
+			item.setPersisted(convertService.convert(value, boolean.class));
 		}
 		else if ("persistKey".equalsIgnoreCase(key)) {
 			item.setPersistKey(value);
 		}
 		else if ("required".equalsIgnoreCase(key)) {
-			item.setRequired(conversionService.convert(value, boolean.class));
+			item.setRequired(convertService.convert(value, boolean.class));
 		}
 		else if ("softMax".equalsIgnoreCase(key)) {
-			item.setSoftMaximum(conversionService.convert(value, item.getType()));
+			item.setSoftMaximum(convertService.convert(value, item.getType()));
 		}
 		else if ("softMin".equalsIgnoreCase(key)) {
-			item.setSoftMinimum(conversionService.convert(value, item.getType()));
+			item.setSoftMinimum(convertService.convert(value, item.getType()));
 		}
 		else if ("stepSize".equalsIgnoreCase(key)) {
 			// FIXME
-			item.setStepSize(conversionService.convert(value, Number.class));
+			item.setStepSize(convertService.convert(value, Number.class));
+		}
+		else if ("style".equalsIgnoreCase(key)) {
+			item.setWidgetStyle(value);
 		}
 		else if ("visibility".equalsIgnoreCase(key)) {
-			item.setVisibility(conversionService.convert(value, ItemVisibility.class));
+			item.setVisibility(convertService.convert(value, ItemVisibility.class));
 		}
 		else if ("value".equalsIgnoreCase(key)) {
-			item.setWidgetStyle(value);
+			item.setDefaultValue(convertService.convert(value, item.getType()));
 		}
 		else {
 			throw new ScriptException("Invalid attribute name: " + key);

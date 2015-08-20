@@ -98,7 +98,7 @@ public class FileUtilsTest {
 		final File jqpublicFile = FileUtils.urlToFile("file:" + jqpublic);
 		assertEqualsPath(jqpublic, jqpublicFile.getPath() + "/");
 
-		final String filePath = jqpublic + "imagej/ImageJ.class";
+		final String filePath = jqpublic + "foo/Bar.class";
 		final String fileURL = new File(filePath).toURI().toURL().toString();
 		final File fileFile = FileUtils.urlToFile(fileURL);
 		assertEqualsPath(filePath, fileFile.getPath());
@@ -122,14 +122,14 @@ public class FileUtilsTest {
 		assertEqualsPath(specialFileOriginal.getPath(), specialFileResult.getPath());
 
 		// verify that 'jar:' URL works
-		final String jarPath = "/Users/jqpublic/imagej/ij-core.jar";
-		final String jarURL = "jar:file:" + jarPath + "!/imagej/ImageJ.class";
+		final String jarPath = "/Users/jqpublic/foo/fubar.jar";
+		final String jarURL = "jar:file:" + jarPath + "!/foo/Bar.class";
 		final File jarFile = FileUtils.urlToFile(jarURL);
 		assertEqualsPath(jarPath, jarFile.getPath());
 
 		// verify that OSGi 'bundleresource:' URL fails
 		final String bundleURL =
-			"bundleresource://346.fwk2106232034:4/imagej/ImageJ.class";
+			"bundleresource://346.fwk2106232034:4/foo/Bar.class";
 		try {
 			final File bundleFile = FileUtils.urlToFile(bundleURL);
 			fail("Expected exception not thrown; result=" + bundleFile);
@@ -289,6 +289,16 @@ public class FileUtilsTest {
 		assertEquals(FileUtils.stripFilenameVersion("jars/bsh.jar"), FileUtils.stripFilenameVersion("jars/bsh-2.0b4.jar"));
 		assertEquals(FileUtils.stripFilenameVersion("jars/mpicbg.jar"), FileUtils.stripFilenameVersion("jars/mpicbg-20111128.jar"));
 		assertEquals(FileUtils.stripFilenameVersion("jars/miglayout-swing.jar"), FileUtils.stripFilenameVersion("jars/miglayout-3.7.3.1-swing.jar"));
+
+		// Test that native binary .jars don't clash with their partner hook .jar
+		assertEquals("jars/ffmpeg-windows-x86.jar", FileUtils.stripFilenameVersion("jars/ffmpeg-2.6.1-0.11-windows-x86.jar"));
+		assertEquals("jars/ffmpeg-windows-x86_64.jar", FileUtils.stripFilenameVersion("jars/ffmpeg-2.6.1-0.11-windows-x86_64.jar"));
+		assertEquals("jars/ffmpeg-macosx-x86_64.jar", FileUtils.stripFilenameVersion("jars/ffmpeg-2.6.1-0.11-macosx-x86_64.jar"));
+		assertEquals("jars/ffmpeg-linux-x86_64.jar", FileUtils.stripFilenameVersion("jars/ffmpeg-2.6.1-0.11-linux-x86_64.jar"));
+		assertEquals("jars/ffmpeg-linux-x86.jar", FileUtils.stripFilenameVersion("jars/ffmpeg-2.6.1-0.11-linux-x86.jar"));
+		assertEquals("jars/ffmpeg-android-x86.jar", FileUtils.stripFilenameVersion("jars/ffmpeg-2.6.1-0.11-android-x86.jar"));
+		assertEquals("jars/ffmpeg-android-arm.jar", FileUtils.stripFilenameVersion("jars/ffmpeg-2.6.1-0.11-android-arm.jar"));
+
 	}
 
 	@Test

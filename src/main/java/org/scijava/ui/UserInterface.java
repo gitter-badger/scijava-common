@@ -37,11 +37,12 @@ import org.scijava.Disposable;
 import org.scijava.display.Display;
 import org.scijava.plugin.Plugin;
 import org.scijava.plugin.RichPlugin;
+import org.scijava.ui.console.ConsolePane;
 import org.scijava.ui.viewer.DisplayWindow;
 import org.scijava.widget.FileWidget;
 
 /**
- * An end-user ImageJ application user interface.
+ * An end-user SciJava application user interface.
  * <p>
  * UIs discoverable at runtime must implement this interface and be annotated
  * with @{@link Plugin} with attribute {@link Plugin#type()} =
@@ -85,14 +86,17 @@ public interface UserInterface extends RichPlugin, Disposable {
 	/** Gets the desktop, for use with multi-document interfaces (MDI). */
 	Desktop getDesktop();
 
-	/** Gets the main ImageJ application frame, or null if not applicable. */
+	/** Gets the main SciJava application frame, or null if not applicable. */
 	ApplicationFrame getApplicationFrame();
 
-	/** Gets the main ImageJ toolbar, or null if not applicable. */
+	/** Gets the main SciJava toolbar, or null if not applicable. */
 	ToolBar getToolBar();
 
-	/** Gets the main ImageJ status bar, or null if not applicable. */
+	/** Gets the main SciJava status bar, or null if not applicable. */
 	StatusBar getStatusBar();
+
+	/** Gets the main SciJava console pane, or null if not applicable. */
+	ConsolePane getConsolePane();
 
 	/** Gets the system clipboard associated with this UI. */
 	SystemClipboard getSystemClipboard();

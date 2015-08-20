@@ -44,7 +44,7 @@ import java.util.Set;
  * 
  * @author Johannes Schindelin
  */
-public class LastRecentlyUsed<T> implements Iterable<T>, Collection<T> {
+public class LastRecentlyUsed<T> implements Collection<T> {
 	private final Object[] entries;
 	private final Map<T, Integer> map;
 	/**
@@ -121,6 +121,7 @@ public class LastRecentlyUsed<T> implements Iterable<T>, Collection<T> {
 	 * @param value the value of the entry
 	 * @return whether the entry was added
 	 */
+	@Override
 	public boolean add(final T value) {
 		return add(value, false);
 	}
@@ -154,6 +155,7 @@ public class LastRecentlyUsed<T> implements Iterable<T>, Collection<T> {
 	/**
 	 * Empties the data structure.
 	 */
+	@Override
 	public void clear() {
 		top = bottom = 0;
 		map.clear();
@@ -258,6 +260,7 @@ public class LastRecentlyUsed<T> implements Iterable<T>, Collection<T> {
 	 * 
 	 * @return the iterator
 	 */
+	@Override
 	public Iterator<T> iterator() {
 		return new Iterator<T>() {
 

@@ -167,14 +167,11 @@ public class ScriptModule extends AbstractModule implements Contextual {
 		}
 
 		// execute script!
-		final ScriptLanguage language = getLanguage();
+		Object returnValue = null;
 		try {
 			final Reader reader = getInfo().getReader();
-			final Object returnValue;
 			if (reader == null) returnValue = engine.eval(new FileReader(path));
 			else returnValue = engine.eval(reader);
-			setOutput(RETURN_VALUE, language.decode(returnValue));
-			setResolved(RETURN_VALUE, true);
 		}
 		catch (Throwable e) {
 			while (e instanceof ScriptException && e.getCause() != null) {
@@ -188,28 +185,33 @@ public class ScriptModule extends AbstractModule implements Contextual {
 		}
 
 		// populate output values
+		final ScriptLanguage language = getLanguage();
 		for (final ModuleItem<?> item : getInfo().outputs()) {
 			final String name = item.getName();
 			if (isResolved(name)) continue;
-			final Object value = engine.get(name);
+			final Object value;
+			if (RETURN_VALUE.equals(name) && !getInfo().isReturnValueDeclared()) {
+				// NB: This is the special implicit return value output!
+				value = returnValue;
+			}
+			else value = engine.get(name);
 			final Object decoded = language.decode(value);
 			final Object typed = conversionService.convert(decoded, item.getType());
 			setOutput(name, typed);
+			setResolved(name, true);
 		}
 
-		if (output != null) try {
-			output.flush();
-		} catch (IOException e) {
-			if (error == null) {
-				log.error(e);
-			} else {
-				e.printStackTrace(errorPrinter);
+		// flush output and error streams
+		if (output != null) {
+			try {
+				output.flush();
+			}
+			catch (final IOException e) {
+				if (error == null) log.error(e);
+				else e.printStackTrace(errorPrinter);
 			}
 		}
-
-		if (errorPrinter != null) {
-			errorPrinter.flush();
-		}
+		if (errorPrinter != null) errorPrinter.flush();
 	}
 
 	// -- Contextual methods --

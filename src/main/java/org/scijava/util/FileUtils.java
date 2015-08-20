@@ -170,15 +170,10 @@ public final class FileUtils {
 		}
 	}
 
-	/**
-	 * A regular expression to match filenames containing version information.
-	 * <p>
-	 * This is kept synchronized with {@code imagej.updater.core.FileObject}.
-	 * </p>
-	 */
+	/** A regular expression to match filenames containing version information. */
 	private final static Pattern versionPattern =
 		Pattern
-			.compile("(.+?)(-\\d+(\\.\\d+|\\d{7})+[a-z]?\\d?(-[A-Za-z0-9.]+?|\\.GA)*?)?((-(swing|swt|shaded|sources|javadoc|native))?(\\.jar(-[a-z]*)?))");
+			.compile("(.+?)(-\\d+(\\.\\d+|\\d{7})+[a-z]?\\d?(-[A-Za-z0-9.]+?|\\.GA)*?)?((-(swing|swt|shaded|sources|javadoc|native|linux-x86|linux-x86_64|macosx-x86_64|windows-x86|windows-x86_64|android-arm|android-x86))?(\\.jar(-[a-z]*)?))");
 
 	public static String stripFilenameVersion(final String filename) {
 		final Matcher matcher = versionPattern.matcher(filename);
@@ -412,7 +407,7 @@ public final class FileUtils {
 	 * </p>
 	 * <p>
 	 * It is the caller's responsibility to make sure that the directory is
-	 * deleted.
+	 * deleted; see {@link #deleteRecursively(File)}.
 	 * </p>
 	 * 
 	 * @param prefix The prefix string to be used in generating the file's name;
@@ -438,7 +433,7 @@ public final class FileUtils {
 	 * </p>
 	 * <p>
 	 * It is the caller's responsibility to make sure that the directory is
-	 * deleted.
+	 * deleted; see {@link #deleteRecursively(File)}.
 	 * </p>
 	 * 
 	 * @param prefix The prefix string to be used in generating the file's name;

@@ -57,6 +57,7 @@ import org.scijava.test.TestUtils;
 import org.scijava.util.DigestUtils;
 import org.scijava.util.FileUtils;
 
+/** Tests {@link ScriptInfo}. */
 public class ScriptInfoTest {
 
 	private static Context context;
@@ -67,7 +68,7 @@ public class ScriptInfoTest {
 	@BeforeClass
 	public static void setUp() {
 		context = new Context();
-		scriptService = context.getService(ScriptService.class);
+		scriptService = context.service(ScriptService.class);
 	}
 
 	@AfterClass
@@ -82,25 +83,29 @@ public class ScriptInfoTest {
 	 * of noise like e-mail addresses.
 	 */
 	@Test
-	public void testParameterParsing() throws Exception {
-		final String script =
-			"" + "% @LogService log\n"
-				+ "% @OUTPUT Integer output"
-				+ "% kraken@blah.net\n";
-		ScriptModule scriptModule = scriptService.run("hello.bsizes", script, true).get();
+	public void testNoisyParameters() throws Exception {
+		final String script = "" + //
+			"% @LogService log\n" + //
+			"% @OUTPUT Integer output" + //
+			"% kraken@blah.net\n";
+		final ScriptModule scriptModule =
+			scriptService.run("hello.bsizes", script, true).get();
 
-		Object output = scriptModule.getOutput("result");
+		final Object output = scriptModule.getOutput("result");
 
-		if (output == null || !(output instanceof Integer)) fail();
-		assertEquals(3, ((Integer)output).intValue());
+		if (output == null) fail("null result");
+		else if (!(output instanceof Integer)) {
+			fail("result is a " + output.getClass().getName());
+		}
+		else assertEquals(3, ((Integer) output).intValue());
 	}
 
 	/** Tests {@link ScriptInfo#getVersion()}. */
 	@Test
 	public void testVersion() throws IOException {
-		final String script =
-				"% @LogService log\n"
-				+ "% @OUTPUT int output";
+		final String script = "" + //
+			"% @LogService log\n" + //
+			"% @OUTPUT int output";
 
 		// write script to a temporary directory on disk
 		final File tmpDir = TestUtils.createTemporaryDirectory("script-info-test-");
@@ -147,18 +152,21 @@ public class ScriptInfoTest {
 		}
 
 		@Override
-		public Object eval(String script) throws ScriptException {
+		public Object eval(final String script) throws ScriptException {
 			return eval(new StringReader(script));
 		}
 
 		@Override
-		public Object eval(Reader reader) throws ScriptException {
-			Bindings bindings = getBindings(ScriptContext.ENGINE_SCOPE);
+		public Object eval(final Reader reader) throws ScriptException {
+			final Bindings bindings = getBindings(ScriptContext.ENGINE_SCOPE);
 			return bindings.size();
 		}
 	}
 
 	private static class BindingSizesBindings extends HashMap<String, Object>
 		implements Bindings
-	{}
+	{
+		// NB: No implementation needed.
+	}
+
 }
